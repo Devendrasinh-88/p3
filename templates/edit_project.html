@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Project - {{ project.project_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Edit Project</h2>
+            <p class="text-muted">Edit details for {{ project.project_name }}</p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('project_details', id=project.id) }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Project Details
+            </a>
+        </div>
+    </div>
+
+    <form method="POST">
+        <!-- Project Details Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Project Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="development_type" class="form-label">Development Type</label>
+                        <select class="form-select" id="development_type" name="development_type" required onchange="handleDevelopmentTypeChange()">
+                            <option value="">Select Type</option>
+                            <option value="road" {% if project.development_type == 'road' %}selected{% endif %}>Road</option>
+                            <option value="bridge" {% if project.development_type == 'bridge' %}selected{% endif %}>Bridge</option>
+                            <option value="building" {% if project.development_type == 'building' %}selected{% endif %}>Building</option>
+                            <option value="water" {% if project.development_type == 'water' %}selected{% endif %}>Water Supply</option>
+                            <option value="sewage" {% if project.development_type == 'sewage' %}selected{% endif %}>Sewage System</option>
+                            <option value="other" {% if project.development_type not in ['road', 'bridge', 'building', 'water', 'sewage'] %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status" required onchange="handleStatusChange()">
+                            <option value="">Select Status</option>
+                            <option value="proposal" {% if project.status == 'proposal' %}selected{% endif %}>Proposal</option>
+                            <option value="in_progress" {% if project.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="completed" {% if project.status == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="delayed" {% if project.status == 'delayed' %}selected{% endif %}>Delayed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3" id="other_development_type_div" style="display: {% if project.development_type not in ['road', 'bridge', 'building', 'water', 'sewage'] %}block{% else %}none{% endif %};">
+                        <label for="other_development_type" class="form-label">Specify Other Development Type</label>
+                        <input type="text" class="form-control" id="other_development_type" name="other_development_type" 
+                            value="{{ project.development_type if project.development_type not in ['road', 'bridge', 'building', 'water', 'sewage'] }}"
+                            placeholder="Enter development type">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="project_name" class="form-label">Project Name</label>
+                        <input type="text" class="form-control" id="project_name" name="project_name" 
+                            value="{{ project.project_name }}" required>
+                    </div>
+                </div>
+
+                <div id="dates_container" style="display: {% if project.status != 'proposal' %}block{% else %}none{% endif %};">
+                    <div class="row">
+                        <div class="col-md-6 mb-3" id="start_date_div">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" 
+                                value="{{ project.start_date.strftime('%Y-%m-%d') }}" onchange="calculateDays()">
+                        </div>
+                        <div class="col-md-6 mb-3" id="end_date_div">
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" 
+                                value="{{ project.end_date.strftime('%Y-%m-%d') }}" onchange="calculateDays()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="estimated_days" class="form-label">Estimated Days</label>
+                        <input type="number" class="form-control" id="estimated_days" name="estimated_days" 
+                            value="{{ project.estimated_days }}" min="1" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="cost" class="form-label" id="cost_label">Fund Required (₹)</label>
+                        <input type="number" class="form-control" id="cost" name="cost" 
+                            value="{{ project.cost }}" required min="0" step="0.01">
+                    </div>
+                </div>
+
+                <!-- Delay Reason Section -->
+                <div class="row" id="delay_reason_div" style="display: {% if project.status == 'delayed' %}block{% else %}none{% endif %};">
+                    <div class="col-12 mb-3">
+                        <label for="delay_reason" class="form-label">Reason for Delay</label>
+                        <textarea class="form-control" id="delay_reason" name="delay_reason" rows="3" 
+                            placeholder="Please provide a detailed explanation for the delay">{{ project.delay_reason }}</textarea>
+                        <div class="form-text">Required when project status is delayed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Location Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Project Location</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="state" class="form-label">State</label>
+                        <input type="text" class="form-control" id="state" name="state" value="Gujarat" readonly required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="district" class="form-label">District</label>
+                        <select class="form-select" id="district" name="district" required>
+                            <option value="">Select District</option>
+                            {% for district in ["Ahmedabad", "Amreli", "Anand", "Aravalli", "Banaskantha", "Bharuch", 
+                                "Bhavnagar", "Botad", "Chhota Udaipur", "Dahod", "Dang", "Devbhoomi Dwarka", 
+                                "Gandhinagar", "Gir Somnath", "Jamnagar", "Junagadh", "Kachchh", "Kheda", 
+                                "Mahisagar", "Mahesana", "Morbi", "Narmada", "Navsari", "Panchmahal", "Patan", 
+                                "Porbandar", "Rajkot", "Sabar Kantha", "Surat", "Surendranagar", "Tapi", 
+                                "Vadodara", "Valsad"] %}
+                            <option value="{{ district }}" {% if project.district == district %}selected{% endif %}>{{ district }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="taluka" class="form-label">Taluka</label>
+                        <select class="form-select" id="taluka" name="taluka" required>
+                            <option value="">Select Taluka</option>
+                            <!-- Will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="village" class="form-label">Village</label>
+                        <input type="text" class="form-control" id="village" name="village" 
+                            value="{{ project.village }}" placeholder="Enter village name" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contractor Details Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Contractor Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="contractor_name" class="form-label">Contractor Name</label>
+                        <input type="text" class="form-control" id="contractor_name" name="contractor_name" 
+                            value="{{ project.contractor_name }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="contractor_contact" class="form-label">Contractor Contact Number</label>
+                        <input type="tel" class="form-control" id="contractor_contact" name="contractor_contact" 
+                            pattern="[0-9]{10}" maxlength="10" value="{{ project.contractor_contact }}"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                            placeholder="Enter 10 digit mobile number" required>
+                        <div class="form-text">Enter 10 digit mobile number without spaces or special characters</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="contractor_email" class="form-label">Contractor Email</label>
+                        <input type="email" class="form-control" id="contractor_email" name="contractor_email" 
+                            value="{{ project.contractor_email }}" placeholder="Enter contractor's email" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="{{ url_for('project_details', id=project.id) }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // All talukas for each district in Gujarat
+    const gujaratTalukas = {
+        "Ahmedabad": ["Ahmadabad", "Bavla", "Daskroi", "Detroj-Rampura", "Dhandhuka", "Dholera", "Dholka", "Mandal", "Sanand", "Viramgam"],
+        "Amreli": ["Amreli", "Babra", "Bagasara", "Dhari", "Jafrabad", "Khambha", "Kunkavav vadia", "Lathi", "Lilia", "Rajula", "Savarkundla"],
+        "Anand": ["Anand", "Anklav", "Borsad", "Khambhat", "Petlad", "Sojitra", "Tarapur", "Umreth"],
+        "Aravalli": ["Bayad", "Bhiloda", "Dhansura", "Malpur", "Meghraj", "Modasa"],
+        "Banaskantha": ["Amirgadh", "Bhabhar", "Danta", "Dantiwada", "Deesa", "Deodar", "Dhanera", "Kankrej", "Lakhani", "Palanpur", "Suigam", "Tharad", "Vadgam", "Vav"],
+        "Bharuch": ["Bharuch", "Amod", "Ankleshwar", "Hansot", "Jambusar", "Jhagadia", "Netrang", "Vagra", "Valia"],
+        "Bhavnagar": ["Bhavnagar", "Gariadhar", "Ghogha", "Jesar", "Mahuva", "Palitana", "Sihor", "Talaja", "Umrala", "Vallabhipur"],
+        "Botad": ["Botad", "Barwala", "Gadhada", "Ranpur"],
+        "Chhota Udaipur": ["Chhota Udaipur", "Bodeli", "Jetpur pavi", "Kavant", "Nasvadi", "Sankheda"],
+        "Dahod": ["Dahod", "Devgadh baria", "Dhanpur", "Fatepura", "Garbada", "Limkheda", "Sanjeli", "Jhalod", "Singvad"],
+        "Dang": ["Ahwa", "Subir", "Waghai"],
+        "Devbhoomi Dwarka": ["Bhanvad", "Kalyanpur", "Khambhalia", "Okhamandal"],
+        "Gandhinagar": ["Gandhinagar", "Dehgam", "Kalol", "Mansa"],
+        "Gir Somnath": ["Gir-Gadhada", "Kodinar", "Sutrapada", "Talala", "Una", "Patan-Veraval"],
+        "Jamnagar": ["Jamnagar", "Dhrol", "Jamjodhpur", "Jodiya", "Kalavad", "Lalpur"],
+        "Junagadh": ["Junagadh City", "Bhesana", "Junagadh Rural", "Keshod", "Malia", "Manavadar", "Mangrol", "Mendarda", "Vanthali", "Visavadar"],
+        "Kachchh": ["Abdasa", "Anjar", "Bhachau", "Bhuj", "Gandhidham", "Lakhpat", "Mandvi", "Mundra", "Nakhatrana", "Rapar"],
+        "Kheda": ["Kheda", "Galteshwar", "Kapadvanj", "Kathlal", "Mahudha", "Matar", "Mehmedabad", "Nadiad", "Thasra", "Vaso"],
+        "Mahisagar": ["Balasinor", "Kadana", "Khanpur", "Lunawada", "Santrampur", "Virpur"],
+        "Mahesana": ["Mehsana", "Becharaji", "Jotana", "Kadi", "Kheralu", "Satlasana", "Unjha", "Vadnagar", "Vijapur", "Visnagar"],
+        "Morbi": ["Halvad", "Maliya", "Morbi", "Tankara", "Wankaner"],
+        "Narmada": ["Dediapada", "Garudeshwar", "Nandod", "Sagbara", "Tilakwada"],
+        "Navsari": ["Navsari", "Vansda", "Chikhli", "Gandevi", "Jalalpore", "Khergam"],
+        "Panchmahal": ["Ghoghamba", "Godhra", "Halol", "Jambughoda", "Kalol", "Morwa Hadaf", "Shehera"],
+        "Patan": ["Patan", "Chanasma", "Harij", "Radhanpur", "Sami", "Sankheswar", "Santalpur", "Sarasvati", "Sidhpur"],
+        "Porbandar": ["Porbandar", "Kutiyana", "Ranavav"],
+        "Rajkot": ["Rajkot", "Dhoraji", "Gondal", "Jamkandorna", "Jasdan", "Jetpur", "Kotada Sangani", "Lodhika", "Paddhari", "Upleta", "Vinchchiya"],
+        "Sabar Kantha": ["Himatnagar", "Idar", "Khedbrahma", "Poshina", "Prantij", "Talod", "Vadali", "Vijaynagar"],
+        "Surat": ["Surat", "Bardoli", "Choryasi", "Kamrej", "Mahuva", "Mandvi", "Mangrol", "Olpad", "Palsana", "Umarpada"],
+        "Surendranagar": ["Chotila", "Chuda", "Dasada", "Dhrangadhra", "Lakhtar", "Limbdi", "Muli", "Sayla", "Thangadh", "Wadhwan"],
+        "Tapi": ["Nizar", "Songadh", "Uchhal", "Valod", "Vyara", "Kukarmunda", "Dolvan"],
+        "Vadodara": ["Vadodara", "Dabhoi", "Desar", "Karjan", "Padra", "Savli", "Sinor", "Waghodia"],
+        "Valsad": ["Valsad", "Dharampur", "Kaprada", "Pardi", "Umbergaon", "Vapi"]
+    };
+    
+    function handleDevelopmentTypeChange() {
+        const developmentType = document.getElementById('development_type').value;
+        const otherDiv = document.getElementById('other_development_type_div');
+        const otherInput = document.getElementById('other_development_type');
+        
+        if (developmentType === 'other') {
+            otherDiv.style.display = 'block';
+            otherInput.required = true;
+        } else {
+            otherDiv.style.display = 'none';
+            otherInput.required = false;
+            otherInput.value = '';
+        }
+    }
+
+    function handleStatusChange() {
+        const status = document.getElementById('status').value;
+        const datesContainer = document.getElementById('dates_container');
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
+        const startDateDiv = document.getElementById('start_date_div');
+        const endDateDiv = document.getElementById('end_date_div');
+        const estimatedDaysInput = document.getElementById('estimated_days');
+        const costLabel = document.getElementById('cost_label');
+        const delayReasonDiv = document.getElementById('delay_reason_div');
+        const delayReasonInput = document.getElementById('delay_reason');
+        
+        if (status === 'proposal') {
+            costLabel.textContent = 'Fund Required (₹)';
+            datesContainer.style.display = 'none';
+            startDateInput.required = false;
+            endDateInput.required = false;
+            estimatedDaysInput.readOnly = false;
+            delayReasonDiv.style.display = 'none';
+            delayReasonInput.required = false;
+        } else if (status === 'in_progress') {
+            costLabel.textContent = 'Fund Taken (₹)';
+            datesContainer.style.display = 'block';
+            startDateDiv.style.display = 'block';
+            endDateDiv.style.display = 'none';
+            startDateInput.required = true;
+            endDateInput.required = false;
+            estimatedDaysInput.readOnly = false;
+            delayReasonDiv.style.display = 'none';
+            delayReasonInput.required = false;
+        } else if (status === 'delayed') {
+            costLabel.textContent = 'Fund Taken (₹)';
+            datesContainer.style.display = 'block';
+            startDateDiv.style.display = 'block';
+            endDateDiv.style.display = 'block';
+            startDateInput.required = true;
+            endDateInput.required = true;
+            estimatedDaysInput.readOnly = true;
+            delayReasonDiv.style.display = 'block';
+            delayReasonInput.required = true;
+        } else {
+            costLabel.textContent = 'Fund Taken (₹)';
+            datesContainer.style.display = 'block';
+            startDateDiv.style.display = 'block';
+            endDateDiv.style.display = 'block';
+            startDateInput.required = true;
+            endDateInput.required = true;
+            estimatedDaysInput.readOnly = true;
+            delayReasonDiv.style.display = 'none';
+            delayReasonInput.required = false;
+        }
+    }
+    
+    function populateTalukaDropdown() {
+        const selectedDistrict = document.getElementById('district').value;
+        const talukaSelect = document.getElementById('taluka');
+        const currentTaluka = "{{ project.taluka }}";
+        
+        // Clear existing options except the first one
+        talukaSelect.innerHTML = '<option value="">Select Taluka</option>';
+        
+        if (selectedDistrict) {
+            const talukas = gujaratTalukas[selectedDistrict] || [];
+            
+            // Add options for each taluka in the selected district
+            talukas.forEach(taluka => {
+                const option = document.createElement('option');
+                option.value = taluka;
+                option.textContent = taluka;
+                if (taluka === currentTaluka) {
+                    option.selected = true;
+                }
+                talukaSelect.appendChild(option);
+            });
+        }
+    }
+    
+    // Add event listener to district dropdown
+    document.getElementById('district').addEventListener('change', populateTalukaDropdown);
+    
+    // Initialize taluka dropdown with current value
+    window.addEventListener('load', populateTalukaDropdown);
+
+    function calculateDays() {
+        const status = document.getElementById('status').value;
+        if (status !== 'proposal' && status !== 'in_progress') {
+            const startDate = new Date(document.getElementById('start_date').value);
+            const endDate = new Date(document.getElementById('end_date').value);
+            
+            if (startDate && endDate) {
+                const diffTime = Math.abs(endDate - startDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                document.getElementById('estimated_days').value = diffDays;
+            }
+        }
+    }
+</script>
+{% endblock %} 

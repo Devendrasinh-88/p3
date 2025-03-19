@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" xmlns:v="https://vecta.io/nano">
+  <style>
+    @keyframes crane-move {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(5deg); }
+      100% { transform: rotate(0deg); }
+    }
+    .crane-arm {
+      transform-origin: 400px 150px;
+      animation: crane-move 8s infinite ease-in-out;
+    }
+  </style>
+  <!-- Background -->
+  <rect width="800" height="600" fill="#f8f9fa"/>
+  
+  <!-- Ground -->
+  <rect x="0" y="500" width="800" height="100" fill="#e9ecef"/>
+  
+  <!-- Buildings under construction -->
+  <rect x="150" y="300" width="200" height="200" fill="#adb5bd"/>
+  <rect x="150" y="250" width="200" height="50" fill="#ced4da" stroke="#6c757d" stroke-width="2"/>
+  <rect x="170" y="320" width="40" height="60" fill="#495057"/>
+  <rect x="240" y="320" width="40" height="60" fill="#495057"/>
+  <rect x="170" y="400" width="40" height="60" fill="#495057"/>
+  <rect x="240" y="400" width="40" height="60" fill="#495057"/>
+  
+  <!-- Scaffolding -->
+  <line x1="120" y1="300" x2="120" y2="500" stroke="#495057" stroke-width="4"/>
+  <line x1="380" y1="300" x2="380" y2="500" stroke="#495057" stroke-width="4"/>
+  <line x1="120" y1="350" x2="380" y2="350" stroke="#495057" stroke-width="3"/>
+  <line x1="120" y1="400" x2="380" y2="400" stroke="#495057" stroke-width="3"/>
+  <line x1="120" y1="450" x2="380" y2="450" stroke="#495057" stroke-width="3"/>
+  
+  <!-- Crane -->
+  <g class="crane-arm">
+    <rect x="400" y="150" width="20" height="350" fill="#fd7e14"/>
+    <polygon points="400,150 600,150 500,100" fill="#fd7e14"/>
+    <line x1="420" y1="150" x2="580" y2="150" stroke="#212529" stroke-width="3"/>
+    <line x1="500" y1="100" x2="500" y2="180" stroke="#212529" stroke-width="2"/>
+    <circle cx="500" cy="180" r="10" fill="#212529"/>
+    <rect x="490" y="180" width="20" height="40" fill="#212529"/>
+  </g>
+  <rect x="380" y="500" width="60" height="20" fill="#fd7e14"/>
+  <rect x="370" y="480" width="80" height="20" fill="#fd7e14"/>
+  
+  <!-- Admin figure -->
+  <circle cx="600" cy="480" r="15" fill="#0d6efd"/>
+  <rect x="595" y="495" width="10" height="25" fill="#0d6efd"/>
+  <line x1="605" y1="505" x2="615" y2="515" stroke="#0d6efd" stroke-width="5"/>
+  <line x1="595" y1="505" x2="585" y2="515" stroke="#0d6efd" stroke-width="5"/>
+  <line x1="600" y1="520" x2="610" y2="540" stroke="#0d6efd" stroke-width="5"/>
+  <line x1="600" y1="520" x2="590" y2="540" stroke="#0d6efd" stroke-width="5"/>
+  <circle cx="600" cy="475" r="3" fill="white"/>
+  <circle cx="608" cy="475" r="3" fill="white"/>
+  
+  <!-- Worker figure -->
+  <circle cx="200" cy="250" r="12" fill="#ffc107"/>
+  <rect x="196" y="262" width="8" height="20" fill="#fd7e14"/>
+  <line x1="204" y1="270" x2="214" y2="275" stroke="#fd7e14" stroke-width="4"/>
+  <line x1="196" y1="270" x2="186" y2="275" stroke="#fd7e14" stroke-width="4"/>
+  <line x1="200" y1="282" x2="208" y2="300" stroke="#fd7e14" stroke-width="4"/>
+  <line x1="200" y1="282" x2="192" y2="300" stroke="#fd7e14" stroke-width="4"/>
+  <path d="M190,245 Q200,235 210,245" stroke="#ffc107" stroke-width="2" fill="none"/>
+  
+  <!-- Document and blueprint -->
+  <rect x="650" y="450" width="30" height="40" fill="white" stroke="#6c757d"/>
+  <line x1="655" y1="460" x2="675" y2="460" stroke="#6c757d" stroke-width="1"/>
+  <line x1="655" y1="470" x2="675" y2="470" stroke="#6c757d" stroke-width="1"/>
+  <line x1="655" y1="480" x2="670" y2="480" stroke="#6c757d" stroke-width="1"/>
+</svg> 

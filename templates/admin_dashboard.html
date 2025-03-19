@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Construction Record System{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Admin Dashboard</h2>
+    
+    <!-- Duplicate Projects Section -->
+    {% if duplicate_projects %}
+    <div class="card mb-4">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0">Projects Needing Duplicate Review</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Project ID</th>
+                            <th>Project Name</th>
+                            <th>Similar Project ID</th>
+                            <th>Location</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in duplicate_projects %}
+                        <tr>
+                            <td>{{ project.project_id }}</td>
+                            <td>{{ project.project_name }}</td>
+                            <td>{{ project.similar_project_id }}</td>
+                            <td>{{ project.village }}, {{ project.taluka }}, {{ project.district }}</td>
+                            <td>
+                                <a href="{{ url_for('project_details', id=project.id) }}" class="btn btn-sm btn-info">View Details</a>
+                                <a href="{{ url_for('project_details', id=project.similar_project_id) }}" class="btn btn-sm btn-secondary">View Similar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Projects Requiring Review -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0">Projects Requiring Review</h5>
+        </div>
+        <div class="card-body">
+            {% if pending_projects %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Project ID</th>
+                            <th>Project Name</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Submitted By</th>
+                            <th>Review Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in pending_projects %}
+                        <tr>
+                            <td>{{ project.project_id }}</td>
+                            <td>{{ project.project_name }}</td>
+                            <td>{{ project.development_type }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if project.status == 'completed' else 'warning' if project.status == 'in_progress' else 'danger' if project.status == 'delayed' else 'info' }}">
+                                    {{ project.status|title }}
+                                </span>
+                            </td>
+                            <td>{{ project.submitter.username }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'info' if project.approval_status == 'pending' else 'primary' }}">
+                                    {{ 'New Project' if project.approval_status == 'pending' else 'Project Update' }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin_review_project', id=project.id) }}" class="btn btn-primary btn-sm">
+                                    Review
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No projects require review at this time.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Decisions -->
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Recent Decisions</h5>
+        </div>
+        <div class="card-body">
+            {% if recent_decisions %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Project ID</th>
+                            <th>Project Name</th>
+                            <th>Decision</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in recent_decisions %}
+                        <tr>
+                            <td>{{ project.project_id }}</td>
+                            <td>{{ project.project_name }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if project.approval_status == 'approved' else 'danger' }}">
+                                    {{ project.approval_status|title }}
+                                </span>
+                            </td>
+                            <td>{{ project.approval_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <a href="{{ url_for('project_details', id=project.id) }}" class="btn btn-info btn-sm">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No recent decisions.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

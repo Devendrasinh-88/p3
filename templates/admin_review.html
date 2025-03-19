@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Review Project - {{ project.project_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Review Project</h2>
+            <p class="text-muted">
+                {% if project.approval_status == 'pending' %}
+                    New project submission
+                {% elif project.approval_status == 'pending_update' %}
+                    Update to approved project
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Project Details</h4>
+            <span class="badge bg-{{ 'success' if project.status == 'completed' else 'warning' if project.status == 'in_progress' else 'danger' if project.status == 'delayed' else 'info' }}">
+                {{ project.status|title }}
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2">Basic Information</h5>
+                    <table class="table">
+                        <tr>
+                            <th width="40%">Project ID:</th>
+                            <td>
+                                {{ project.project_id }}
+                                {% if project.old_project_id %}
+                                <br>
+                                <small class="text-muted">Previous ID: {{ project.old_project_id }}</small>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Project Name:</th>
+                            <td>{{ project.project_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Development Type:</th>
+                            <td>{{ project.development_type|title }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>{{ project.status|title }}</td>
+                        </tr>
+                        <tr>
+                            <th>Cost:</th>
+                            <td>₹{{ "%.2f"|format(project.cost) }}</td>
+                        </tr>
+                        {% if project.status == 'delayed' and project.delay_reason %}
+                        <tr>
+                            <th>Delay Reason:</th>
+                            <td>{{ project.delay_reason }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2">Timeline</h5>
+                    <table class="table">
+                        <tr>
+                            <th width="40%">Start Date:</th>
+                            <td>{{ project.start_date.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                        <tr>
+                            <th>End Date:</th>
+                            <td>{{ project.end_date.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Estimated Days:</th>
+                            <td>{{ project.estimated_days }} days</td>
+                        </tr>
+                        <tr>
+                            <th>Submitted On:</th>
+                            <td>{{ project.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        {% if project.updated_at != project.created_at %}
+                        <tr>
+                            <th>Last Updated:</th>
+                            <td>{{ project.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2">Location Details</h5>
+                    <table class="table">
+                        <tr>
+                            <th width="40%">State:</th>
+                            <td>{{ project.state }}</td>
+                        </tr>
+                        <tr>
+                            <th>District:</th>
+                            <td>{{ project.district }}</td>
+                        </tr>
+                        <tr>
+                            <th>Taluka:</th>
+                            <td>{{ project.taluka }}</td>
+                        </tr>
+                        <tr>
+                            <th>Village:</th>
+                            <td>{{ project.village }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2">Contractor Details</h5>
+                    <table class="table">
+                        <tr>
+                            <th width="40%">Name:</th>
+                            <td>{{ project.contractor_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Contact:</th>
+                            <td>{{ project.contractor_contact }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>{{ project.contractor_email }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            {% if project.approval_status == 'pending_update' %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">Update Information</h5>
+                        <p class="mb-0">This project has been updated by the data entry officer and requires your review.</p>
+                        {% if project.changes_log %}
+                        <hr>
+                        <h6>Changes Made:</h6>
+                        <ul class="mb-0">
+                            {% for change in project.changes_log %}
+                            <li>{{ change }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Review Decision</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <form action="{{ url_for('approve_project', id=project.id) }}" method="POST">
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="bi bi-check-circle"></i> 
+                            {% if project.approval_status == 'pending_update' %}
+                                Approve Updates
+                            {% else %}
+                                Approve Project
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-danger btn-lg w-100" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                        <i class="bi bi-x-circle"></i> 
+                        {% if project.approval_status == 'pending_update' %}
+                            Reject Updates
+                        {% else %}
+                            Reject Project
+                        {% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if similar_projects %}
+    <div class="card">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0">Similar Projects Found</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Project ID</th>
+                            <th>Project Name</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Cost</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for similar in similar_projects %}
+                        <tr>
+                            <td>{{ similar.project_id }}</td>
+                            <td>{{ similar.project_name }}</td>
+                            <td>{{ similar.development_type }}</td>
+                            <td>{{ similar.village }}, {{ similar.district }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if similar.status == 'completed' else 'warning' if similar.status == 'in_progress' else 'danger' if similar.status == 'delayed' else 'info' }}">
+                                    {{ similar.status|title }}
+                                </span>
+                            </td>
+                            <td>₹{{ "%.2f"|format(similar.cost) }}</td>
+                            <td>
+                                <a href="{{ url_for('project_details', id=similar.id) }}" class="btn btn-info btn-sm">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    {% if project.approval_status == 'pending_update' %}
+                        Reject Updates
+                    {% else %}
+                        Reject Project
+                    {% endif %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('reject_project', id=project.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="rejection_reason" class="form-label">Reason for Rejection</label>
+                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Confirm Rejection</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

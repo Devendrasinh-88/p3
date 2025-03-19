@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Data Entry Login - Construction Record System{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="text-center">Data Entry Officer Login</h3>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="captcha" class="form-label">CAPTCHA Verification</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="captcha" name="captcha" required placeholder="Enter the code shown in image">
+                                <span class="input-group-text p-0 border-0">
+                                    <img id="captchaImage" src="{{ url_for('get_captcha') }}" alt="CAPTCHA" style="height: 60px; width: 180px; cursor: pointer;" onclick="refreshCaptcha()">
+                                </span>
+                                <button type="button" class="btn btn-outline-secondary" onclick="refreshCaptcha()">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">Click on the image or refresh button to get a new code</small>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-person"></i> Login as Data Entry Officer
+                            </button>
+                            <a href="{{ url_for('admin_login') }}" class="btn btn-outline-primary">
+                                <i class="bi bi-shield-lock"></i> Switch to Admin Login
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshCaptcha() {
+    document.getElementById('captchaImage').src = "{{ url_for('get_captcha') }}?" + new Date().getTime();
+    document.getElementById('captcha').value = '';
+}
+</script>
+{% endblock %} 

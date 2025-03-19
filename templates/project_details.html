@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Project Details - Construction Record System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Project Details</h4>
+                <div>
+                    <span class="badge bg-{{ 'success' if project.status == 'completed' else 'warning' if project.status == 'in_progress' else 'danger' if project.status == 'delayed' else 'info' }}">
+                        {{ project.status|title }}
+                    </span>
+                    {% if current_user.is_data_entry() and project.submitted_by == current_user.id %}
+                        {% if project.approval_status == 'pending' or project.approval_status == 'rejected' %}
+                            <a href="{{ url_for('edit_project', id=project.id) }}" class="btn btn-warning btn-sm ms-2">
+                                <i class="bi bi-pencil"></i> Edit Project
+                            </a>
+                        {% elif project.approval_status == 'approved' %}
+                            <a href="{{ url_for('update_project', id=project.id) }}" class="btn btn-primary btn-sm ms-2">
+                                <i class="bi bi-arrow-clockwise"></i> Update Status
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Basic Information</h5>
+                        <table class="table">
+                            <tr>
+                                <th>Project ID:</th>
+                                <td>{{ project.project_id }}</td>
+                            </tr>
+                            <tr>
+                                <th>Project Name:</th>
+                                <td>{{ project.project_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Development Type:</th>
+                                <td>{{ project.development_type|title }}</td>
+                            </tr>
+                            <tr>
+                                <th>Status:</th>
+                                <td>{{ project.status|title }}</td>
+                            </tr>
+                            {% if project.status == 'delayed' and project.delay_reason %}
+                            <tr>
+                                <th>Delay Reason:</th>
+                                <td>{{ project.delay_reason }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Timeline</h5>
+                        <table class="table">
+                            <tr>
+                                <th>Start Date:</th>
+                                <td>{{ project.start_date.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            <tr>
+                                <th>End Date:</th>
+                                <td>{{ project.end_date.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            <tr>
+                                <th>Estimated Days:</th>
+                                <td>{{ project.estimated_days }} days</td>
+                            </tr>
+                            <tr>
+                                <th>Created At:</th>
+                                <td>{{ project.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h5>Location Details</h5>
+                        <table class="table">
+                            <tr>
+                                <th>State:</th>
+                                <td>{{ project.state }}</td>
+                            </tr>
+                            <tr>
+                                <th>District:</th>
+                                <td>{{ project.district }}</td>
+                            </tr>
+                            <tr>
+                                <th>Taluka:</th>
+                                <td>{{ project.taluka }}</td>
+                            </tr>
+                            <tr>
+                                <th>Village:</th>
+                                <td>{{ project.village }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Contractor Details</h5>
+                        <table class="table">
+                            <tr>
+                                <th>Name:</th>
+                                <td>{{ project.contractor_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Contact:</th>
+                                <td>{{ project.contractor_contact }}</td>
+                            </tr>
+                            <tr>
+                                <th>Email:</th>
+                                <td>{{ project.contractor_email }}</td>
+                            </tr>
+                            <tr>
+                                <th>Cost:</th>
+                                <td>₹{{ project.cost }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h5>Approval Status</h5>
+                        <table class="table">
+                            <tr>
+                                <th>Status:</th>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if project.approval_status == 'approved' else 'warning' if project.approval_status == 'pending' else 'danger' }}">
+                                        {{ project.approval_status|title }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% if project.approval_status != 'pending' %}
+                            <tr>
+                                <th>Decision Date:</th>
+                                <td>{{ project.approval_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                            </tr>
+                            <tr>
+                                <th>Decision By:</th>
+                                <td>{{ project.approver.username if project.approver else 'N/A' }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if project.approval_status == 'rejected' and project.rejection_reason %}
+                            <tr>
+                                <th>Rejection Reason:</th>
+                                <td>{{ project.rejection_reason }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if similar_projects %}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Similar Projects</h5>
+            </div>
+            <div class="card-body">
+                {% for similar in similar_projects %}
+                <div class="mb-3">
+                    <h6><a href="{{ url_for('project_details', id=similar.id) }}">{{ similar.project_name }}</a></h6>
+                    <small class="text-muted">
+                        Status: 
+                        <span class="badge bg-{{ 'success' if similar.status == 'completed' else 'warning' if similar.status == 'in_progress' else 'danger' if similar.status == 'delayed' else 'info' }}">
+                            {{ similar.status|title }}
+                        </span>
+                    </small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row mt-4">
+    <div class="col">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %} 
